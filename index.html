@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦾 G-IA - Votre Assistant Cyber</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        body {
+            background-color: black;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #00ff00;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-buttons button {
+            background: transparent;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+
+        .nav-buttons button:hover {
+            background: #00ff00;
+            color: black;
+        }
+
+        .download-button {
+            background: #00ff00;
+            color: black;
+            font-weight: bold;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .download-button:hover {
+            background: #00ffaa;
+            box-shadow: 0px 0px 15px #00ffaa;
+        }
+
+        .chat-container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 255, 0, 0.7);
+            width: 55%;
+            max-width: 700px;
+            height: 75vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #00ff00;
+            margin: 50px auto;
+        }
+
+        h2 {
+            text-align: center;
+            text-shadow: 0px 0px 10px #00ff00;
+        }
+
+        .chat-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            max-height: 550px;
+        }
+
+        .chat-box::-webkit-scrollbar {
+            display: none;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .user-message {
+            color: #00ffaa;
+            text-align: right;
+        }
+
+        .bot-message {
+            color: #00ff00;
+            text-align: left;
+        }
+
+        .input-group {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            background: transparent;
+            color: #00ff00;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #00ff00;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #00ffaa;
+            box-shadow: 0px 0px 15px #00ffaa;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            left: 20px;
+            color: #00ffaa;
+            font-size: 14px;
+            text-shadow: 0px 0px 10px #00ffaa;
+        }
+
+        .footer span {
+            margin-left: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="navbar">
+        <div class="nav-buttons">
+            <button onclick="window.location.href='login.html'">Se connecter</button>
+            <button onclick="window.location.href='register.html'">Créer un compte</button>
+        </div>
+        <button class="download-button" onclick="window.location.href='https://drive.google.com/drive/folders/1ARWuabrlnpW1RbNr0ZmU_ELs-qsuSAl2?usp=drive_link'">
+            Download G-IA
+        </button>
+    </div>
+
+    <div class="chat-container">
+        <h2>Bienvenue sur G-IA V.1.1</h2>
+        <div class="chat-box" id="chatBox">
+            <div class="message bot-message">G-IA : Bonjour, comment puis-je vous aider ?</div>
+        </div>
+        <div class="input-group">
+            <input type="text" id="userInput" placeholder="Écrivez votre message...">
+            <button onclick="sendMessage()">Envoyer</button>
+        </div>
+    </div>
+
+    <div class="footer">Développé par Gweltaz <span>📧 gweltaz.pro@gmail.com    │ Votre IA 100% CyberSécurité │                Veuillez bien écrire, et bien formuler vos questions</span></div>
+
+    <script>
+        const rawBotResponses = {
+            "salut": "Salut ! Comment puis-je vous aider ?",
+    "bonjour": "Bonjour, comment tu vas aujourd'hui ?",
+    "comment ça va": "Je vais bien, merci ! Et toi ?",
+    "qui es-tu": "Je suis G-IA, une intelligence artificielle développée par Gweltaz.",
+    "merci": "De rien ! N'hésite pas à poser d'autres questions.",
+    "aide": "Je suis là pour t'aider. Pose-moi une question !",
+    "quelle heure est-il ?": "Désolé, je ne peux pas donner l'heure exacte. Veux-tu savoir autre chose ?",
+    "quel jour sommes-nous ?": "Je ne sais pas quel jour nous sommes, mais je peux répondre à d'autres questions.",
+    "au revoir": "Au revoir ! Passe une excellente journée !",
+    "c'est quoi l'intelligence artificielle ?": "L'intelligence artificielle est la simulation des processus d'intelligence humaine par des machines.",
+    "quel est le plus grand océan du monde ?": "Le plus grand océan du monde est l'océan Pacifique.",
+    "comment s'appelle le président de la France ?": "Le président de la France est Emmanuel Macron (à vérifier selon l'année).",
+    "comment fonctionne une voiture autonome ?": "Elle utilise des capteurs, des algorithmes et l'IA pour se déplacer sans intervention humaine.",
+    "qui a écrit 'Les Misérables' ?": "Les Misérables a été écrit par Victor Hugo.",
+    "quels sont les bienfaits de l'exercice régulier ?": "L'exercice régulier améliore la santé cardiovasculaire, renforce les muscles et réduit le stress.",
+    "comment prévenir les maladies cardiovasculaires ?": "Une alimentation équilibrée, l'exercice régulier et l'évitement du tabac sont essentiels.",
+    "quand a eu lieu la révolution française ?": "La Révolution française a eu lieu de 1789 à 1799.",
+    "quel est la capitale de l'italie ?": "La capitale de l'Italie est Rome.",
+    "quelle est la distance entre la Terre et la Lune ?": "La distance moyenne entre la Terre et la Lune est d'environ 384 400 km.",
+    "qui est le père de la relativité ?": "Le père de la relativité est Albert Einstein.",
+    "bien": "Content de l'entendre ! Comment puis-je t'aider aujourd'hui ?",
+    "très bien": "Ravi de l'entendre ! Que puis-je faire pour toi aujourd'hui ?",
+    "qu'est-ce que la cybersécurité ?": "La cybersécurité est la pratique de protéger les systèmes, réseaux et programmes contre les attaques numériques.",
+    "comment se protéger contre les virus informatiques ?": "Pour se protéger contre les virus, il est important d'installer un logiciel antivirus et de toujours mettre à jour ses systèmes.",
+    "qu'est-ce qu'un pare-feu ?": "Un pare-feu est un système qui surveille et contrôle le trafic réseau entrant et sortant, en fonction de règles de sécurité prédéfinies.",
+    "qu'est-ce qu'un ransomware ?": "Un ransomware est un type de logiciel malveillant qui chiffre les fichiers d'un utilisateur et demande une rançon pour les déchiffrer.",
+    "qu'est-ce qu'une attaque ddos ?": "Une attaque DDoS (Distributed Denial of Service) surcharge un serveur ou un réseau avec un trafic massif afin de le rendre inaccessible.",
+    "comment sécuriser son mot de passe ?": "Il est recommandé d'utiliser des mots de passe longs, complexes et uniques pour chaque service, et de les stocker dans un gestionnaire de mots de passe.",
+    "qu'est-ce qu'un phishing ?": "Le phishing est une technique frauduleuse qui consiste à tromper une personne pour qu'elle divulgue des informations sensibles, souvent par e-mail.",
+    "qu'est-ce qu'un vpn ?": "Un VPN (Virtual Private Network) permet de sécuriser une connexion internet en cryptant les données échangées et en masquant l'adresse IP de l'utilisateur.",
+    "comment protéger ses données personnelles ?": "Il est important de ne jamais partager ses informations personnelles sur des sites non sécurisés et d'utiliser des outils de chiffrement pour protéger ses données.",
+    "qu'est-ce que l'ingénierie sociale ?": "L'ingénierie sociale est une technique utilisée par les cybercriminels pour manipuler des individus afin d'obtenir des informations sensibles.",
+    "comment détecter un email de phishing ?": "Les emails de phishing contiennent souvent des erreurs de grammaire, des liens suspects ou des demandes urgentes d'informations personnelles.",
+    "qu'est-ce qu'un malware ?": "Un malware est un logiciel conçu pour infiltrer, endommager ou voler des données sur un système informatique sans le consentement de l'utilisateur.",
+    "qu'est-ce qu'une attaque par injection SQL ?": "Une attaque par injection SQL permet à un attaquant d'exécuter des commandes malveillantes sur une base de données en exploitant une faille de sécurité.",
+    "qu'est-ce que l'authentification à deux facteurs ?": "L'authentification à deux facteurs est un moyen de sécuriser un compte en demandant deux formes de vérification : un mot de passe et un code envoyé sur un appareil.",
+    "qu'est-ce qu'une faille de sécurité ?": "Une faille de sécurité est une vulnérabilité dans un système informatique qui peut être exploitée par un attaquant pour accéder à des informations sensibles.",
+    "qu'est-ce qu'une clé de chiffrement ?": "Une clé de chiffrement est une séquence de données utilisée pour sécuriser les informations en les rendant illisibles pour les personnes non autorisées.",
+    "comment se protéger des attaques XSS ?": "Les attaques XSS (Cross-Site Scripting) peuvent être évitées en validant correctement toutes les entrées de l'utilisateur et en échappant les données avant de les afficher sur une page web.",
+    "qu'est-ce qu'un certificat ssl ?": "Un certificat SSL (Secure Socket Layer) permet de sécuriser les connexions entre un utilisateur et un site web en chiffrant les données échangées.",
+    "qu'est-ce que le hacking éthique ?": "Le hacking éthique consiste à tester et sécuriser un système informatique en utilisant les mêmes techniques qu'un hacker, mais de manière légale et avec l'autorisation du propriétaire.",
+    "comment protéger un réseau wifi ?": "Pour sécuriser un réseau Wi-Fi, il est conseillé de changer les identifiants par défaut, d'utiliser le cryptage WPA3 et de désactiver le WPS.",
+    "qu'est-ce qu'un botnet ?": "Un botnet est un réseau de dispositifs infectés par un malware, qui sont contrôlés à distance pour effectuer des actions malveillantes, comme des attaques DDoS.",
+    "qu'est-ce que l'authentification biométrique ?": "L'authentification biométrique utilise des caractéristiques physiques uniques de l'utilisateur, comme l'empreinte digitale ou la reconnaissance faciale, pour vérifier son identité.",
+    "qu'est-ce qu'un rootkit ?": "Un rootkit est un logiciel malveillant qui permet à un attaquant de prendre le contrôle total d'un système, tout en masquant sa présence.",
+    "comment protéger son ordinateur contre les virus ?": "Il est important de maintenir son système à jour, d'utiliser un antivirus et d'éviter de télécharger des fichiers provenant de sources non fiables.",
+    "qu'est-ce qu'une brèche de sécurité ?": "Une brèche de sécurité est un incident où un système de sécurité est contourné, permettant à des attaquants d'accéder à des données sensibles.",
+    "qu'est-ce qu'un bot ?" : "Un bot est un programme informatique automatisé qui effectue des tâches répétitives, souvent utilisé à des fins malveillantes pour exécuter des actions à grande échelle.",
+    "qu'est-ce qu'une attaque de type Man-in-the-Middle (MITM) ?" : "Une attaque Man-in-the-Middle (MITM) est une attaque où l'attaquant intercepte et modifie les communications entre deux parties sans qu'elles en soient conscientes.",
+    "qu'est-ce qu'une attaque par force brute ?" : "Une attaque par force brute consiste à tester toutes les combinaisons possibles pour deviner un mot de passe ou une clé de chiffrement.",
+    "qu'est-ce que le cryptage symétrique ?" : "Le cryptage symétrique utilise la même clé pour chiffrer et déchiffrer les données, ce qui signifie que la clé doit être partagée de manière sécurisée entre l'expéditeur et le destinataire.",
+    "qu'est-ce que le cryptage asymétrique ?" : "Le cryptage asymétrique utilise une paire de clés, une publique et une privée, permettant au destinataire de déchiffrer les données envoyées par l'expéditeur.",
+    "qu'est-ce que le sudo ?" : "Sudo est une commande utilisée dans les systèmes Unix pour exécuter des commandes avec les privilèges d'un autre utilisateur, généralement l'administrateur système.",
+    "qu'est-ce qu'un honeypot ?" : "Un honeypot est un système ou une ressource délibérément vulnérable utilisé pour attirer et observer les attaques dans le but de recueillir des informations sur les méthodes des cybercriminels.",
+    "qu'est-ce que l'authentification unique ?" : "L'authentification unique (SSO) permet à un utilisateur de se connecter à plusieurs applications ou services avec une seule authentification.",
+    "qu'est-ce que le chiffrement de bout en bout ?" : "Le chiffrement de bout en bout assure que les messages sont chiffrés sur le dispositif de l'expéditeur et ne peuvent être déchiffrés que par le dispositif du destinataire.",
+    "qu'est-ce qu'une clé publique ?" : "Une clé publique est une partie d'un système de cryptage asymétrique, qui est utilisée pour chiffrer les messages ou vérifier l'authenticité d'une signature numérique.",
+    "qu'est-ce qu'une clé privée ?" : "Une clé privée est l'autre partie du système de cryptage asymétrique, utilisée pour déchiffrer les messages ou créer des signatures numériques.",
+    "qu'est-ce que le chiffrement des données ?" : "Le chiffrement des données consiste à transformer des informations lisibles en un format illisible pour protéger leur confidentialité.",
+    "qu'est-ce qu'un zero-day ?" : "Une vulnérabilité zero-day est une faille de sécurité qui n'a pas encore été découverte ou corrigée par les développeurs, et qui peut être exploitée par les attaquants.",
+    "qu'est-ce que l'open web application security project ?" : "OWASP est une organisation qui promeut la sécurité des applications web en fournissant des ressources et des outils pour protéger les sites web contre les vulnérabilités.",
+    "qu'est-ce qu'un certificat numérique ?" : "Un certificat numérique est un document électronique utilisé pour prouver l'identité d'une entité et pour chiffrer les communications.",
+    "qu'est-ce qu'un keylogger ?" : "Un keylogger est un logiciel malveillant qui enregistre toutes les frappes sur un clavier, souvent utilisé pour voler des informations sensibles comme des mots de passe.",
+    "qu'est-ce que le scraping ?" : "Le scraping est une technique qui consiste à extraire des données d'un site web en utilisant des scripts automatisés. Cette pratique peut être utilisée à des fins malveillantes.",
+    "qu'est-ce que le déni de service ?" : "Le déni de service (DoS) est une attaque visant à rendre un système ou un service indisponible en le surchargeant de requêtes ou en exploitant une vulnérabilité.",
+    "qu'est-ce que le chiffrement homomorphe ?" : "Le chiffrement homomorphe est un type de chiffrement qui permet de manipuler des données chiffrées sans les déchiffrer au préalable.",
+    "qu'est-ce que la gestion des vulnérabilités ?" : "La gestion des vulnérabilités consiste à identifier, évaluer et corriger les failles de sécurité dans un système informatique pour prévenir les cyberattaques.",
+    "qu'est-ce qu'un exploit ?" : "Un exploit est un programme ou une méthode qui tire parti d'une vulnérabilité de sécurité pour compromettre un système.",
+    "qu'est-ce que le Social Engineering ?" : "Le Social Engineering désigne les techniques manipulatrices utilisées par les attaquants pour tromper les utilisateurs et obtenir des informations sensibles, souvent par des moyens humains.",
+    "qu'est-ce qu'un script kiddie ?" : "Un script kiddie est une personne qui utilise des outils automatisés, sans réellement comprendre les techniques sous-jacentes, pour mener des attaques informatiques.",
+    "qu'est-ce qu'un certificat ssl ?" : "Un certificat SSL/TLS est un protocole de sécurité qui chiffre les échanges de données entre un serveur web et un client pour garantir la confidentialité et l'intégrité des informations.",
+    "qu'est-ce que le principe du moindre privilège ?" : "Le principe du moindre privilège consiste à donner à un utilisateur ou à un système uniquement les autorisations nécessaires pour effectuer ses tâches, afin de réduire le risque d'attaque.",
+    "qu'est-ce qu'une attaque par injection de code ?" : "Une attaque par injection de code permet à un attaquant d'injecter des instructions malveillantes dans un programme, souvent dans une application web, pour en prendre le contrôle.",
+    "qu'est-ce que la sécurité des applications mobiles ?" : "La sécurité des applications mobiles consiste à protéger les applications mobiles contre les menaces et vulnérabilités, telles que le vol de données ou l'exécution de code malveillant.",
+    "qu'est-ce que l'analyse forensique ?" : "L'analyse forensique consiste à examiner les systèmes et les données après une attaque pour identifier la source, comprendre la méthode d'attaque et récupérer des informations.",
+    "qu'est-ce qu'un réseau privé virtuel (VPN) ?" : "Un VPN (réseau privé virtuel) chiffre les connexions Internet et permet de masquer l'adresse IP d'un utilisateur, améliorant ainsi la sécurité et la confidentialité en ligne.",
+    "je crois avoir attrapé un virus" : "Ne paniquez pas. Commencez par effectuer une analyse complète de votre système avec un logiciel antivirus fiable. Si le problème persiste, vous pouvez envisager de réinstaller votre système d'exploitation ou de faire appel à un professionnel.",
+    "comment me débarrasser d'un virus ?" : "Pour vous débarrasser d'un virus, lancez une analyse complète avec un antivirus à jour, puis suivez les instructions pour supprimer le fichier infecté. Si cela échoue, vous pouvez essayer de démarrer en mode sans échec et d'exécuter l'antivirus.",
+    "que faire si je suis victime de phishing ?" : "Si vous êtes victime de phishing, changez immédiatement vos mots de passe et activez l'authentification à deux facteurs pour vos comptes. Signalez également le message de phishing aux autorités ou à l'entreprise concernée.",
+    "comment savoir si mon ordinateur est infecté ?" : "Les signes d'une infection peuvent inclure des ralentissements inhabituels, des pop-ups indésirables, des programmes qui se lancent sans votre consentement ou des comportements étranges du système. Si vous remarquez l'un de ces symptômes, effectuez un scan antivirus.",
+    "comment protéger mon mot de passe ?" : "Utilisez un mot de passe long et complexe, composé de lettres, chiffres et caractères spéciaux. Évitez d'utiliser des mots courants ou des informations personnelles. De plus, pensez à utiliser un gestionnaire de mots de passe pour les garder en sécurité.",
+    "que faire si je suis victime d'un ransomware ?" : "Si vous êtes victime d'un ransomware, ne payez pas la rançon. Déconnectez immédiatement votre appareil d'Internet pour éviter toute propagation. Essayez de restaurer vos fichiers à partir de sauvegardes, puis effectuez une analyse complète avec un antivirus.",
+    "qu'est-ce que l'authentification à deux facteurs ?" : "L'authentification à deux facteurs (2FA) ajoute une couche de sécurité supplémentaire à vos comptes en ligne. Après avoir entré votre mot de passe, vous devrez également fournir un code envoyé sur votre téléphone ou par une application, rendant l'accès plus sécurisé.",
+    "comment savoir si mon e-mail est sécurisé ?" : "Assurez-vous que votre e-mail utilise un mot de passe fort et que vous avez activé l'authentification à deux facteurs. Vérifiez également que l'adresse e-mail de l'expéditeur est correcte et méfiez-vous des e-mails suspects avec des liens ou pièces jointes non demandés.",
+    "que faire si je reçois un e-mail suspect ?" : "Ne cliquez pas sur les liens et ne téléchargez pas les pièces jointes. Vérifiez l'adresse de l'expéditeur et, si cela vous semble suspect, signalez l'e-mail comme spam ou phishing. Vous pouvez également le supprimer immédiatement.",
+    "qu'est-ce qu'un cheval de troie ?" : "Un cheval de Troie est un type de malware qui se cache dans des programmes légitimes ou des fichiers, et qui permet à un attaquant de prendre le contrôle de votre système à votre insu.",
+    "comment protéger mes données personnelles en ligne ?" : "Pour protéger vos données personnelles, utilisez des mots de passe forts, activez l'authentification à deux facteurs, évitez de partager trop d'informations en ligne et utilisez un VPN pour sécuriser vos connexions Internet.",
+    "que faire si mon compte a été piraté ?" : "Changez immédiatement votre mot de passe et activez l'authentification à deux facteurs. Vérifiez également l'activité récente sur votre compte et contactez le service client pour signaler le piratage.",
+    "comment éviter les attaques par ransomware ?" : "Pour éviter les ransomwares, assurez-vous que vos logiciels sont à jour, utilisez un antivirus de qualité, ne cliquez pas sur des liens suspects et effectuez régulièrement des sauvegardes de vos fichiers importants.",
+    "qu'est-ce qu'un spyware ?" : "Un spyware est un logiciel malveillant qui recueille des informations sur l'utilisateur sans son consentement, souvent pour des fins publicitaires ou criminelles.",
+    "qu'est-ce qu'une attaque de phishing ?" : "Le phishing est une tentative d'escroquerie où un attaquant se fait passer pour une organisation de confiance pour vous inciter à divulguer des informations personnelles, comme vos mots de passe ou numéros de carte bancaire.",
+    "comment se protéger des attaques de phishing ?" : "Pour vous protéger des attaques de phishing, vérifiez toujours l'adresse e-mail de l'expéditeur, ne cliquez jamais sur des liens ou ne téléchargez pas de pièces jointes provenant de sources inconnues, et soyez vigilant aux messages urgents demandant des informations sensibles.",
+    "qu'est-ce qu'un pare-feu ?" : "Un pare-feu est un système de sécurité qui surveille et contrôle le trafic réseau entrant et sortant afin de protéger un ordinateur ou un réseau contre les accès non autorisés.",
+    "comment éviter les logiciels malveillants ?" : "Pour éviter les logiciels malveillants, n'installez que des applications provenant de sources fiables, mettez régulièrement vos logiciels à jour, utilisez un antivirus et soyez vigilant face aux pièces jointes et aux liens suspects.",
+    "comment savoir si mon wifi est sécurisé ?" : "Assurez-vous que votre réseau Wi-Fi utilise un mot de passe fort et qu'il est protégé par WPA2 ou WPA3. Désactivez également le WPS et surveillez les appareils connectés à votre réseau.",
+    "qu'est-ce que le shadow it ?" : "Le Shadow IT désigne l'utilisation de technologies non autorisées par les employés au sein d'une organisation, comme des applications ou des services en ligne non approuvés par le département informatique.",
+    "qu'est-ce qu'un botnet ?" : "Un botnet est un réseau de machines infectées par des malwares qui peuvent être contrôlées à distance par un attaquant pour lancer des attaques, comme des attaques par déni de service distribué (DDoS).",
+    "comment protéger mon entreprise contre les cyberattaques ?" : "Pour protéger votre entreprise, assurez-vous d'avoir une politique de sécurité claire, formez vos employés aux bonnes pratiques de cybersécurité, utilisez des solutions antivirus et de pare-feu, et effectuez des sauvegardes régulières.",
+    "qu'est-ce qu'un keylogger ?" : "Un keylogger est un logiciel malveillant qui enregistre toutes les frappes de clavier sur un ordinateur, permettant ainsi de voler des informations sensibles comme des mots de passe ou des numéros de carte de crédit.",
+    "comment sécuriser mes communications en ligne ?" : "Pour sécuriser vos communications en ligne, utilisez des services de messagerie cryptée, évitez de partager des informations sensibles sur des réseaux non sécurisés, et privilégiez l'utilisation de VPN pour protéger votre confidentialité.",
+    "pourquoi la cybersécurité est-elle importante ?" : "La cybersécurité est essentielle pour protéger les informations sensibles, éviter le vol de données, prévenir les cyberattaques et assurer la confidentialité, l'intégrité et la disponibilité des systèmes.",
+    "quelles sont les principales menaces de cybersécurité ?" : "Les principales menaces incluent les malwares, les ransomwares, le phishing, les attaques par déni de service (DDoS), les intrusions dans les réseaux et le vol de données.",
+    "comment sécuriser mon ordinateur ?" : "Pour sécuriser votre ordinateur, utilisez un antivirus à jour, activez un pare-feu, installez les dernières mises à jour de sécurité, et soyez vigilant face aux liens et pièces jointes suspectes.",
+    "qu'est-ce qu'une attaque DDoS ?" : "Une attaque par déni de service distribué (DDoS) consiste à saturer un serveur ou un réseau avec un grand nombre de demandes simultanées, dans le but de rendre le service indisponible.",
+    "que sont les failles de sécurité ?" : "Les failles de sécurité sont des vulnérabilités dans un système informatique ou un logiciel qui peuvent être exploitées par des attaquants pour obtenir un accès non autorisé ou causer des dommages.",
+    "comment fonctionne l'authentification multifactorielle ?" : "L'authentification multifactorielle (MFA) renforce la sécurité en exigeant plusieurs formes d'identification : quelque chose que vous savez (mot de passe), quelque chose que vous avez (téléphone, carte), et quelque chose que vous êtes (empreinte digitale).",
+    "qu'est-ce qu'un malware ?" : "Un malware (logiciel malveillant) est un programme conçu pour causer des dommages à un ordinateur ou à un réseau, comme voler des informations, perturber le fonctionnement ou prendre le contrôle du système.",
+    "qu'est-ce qu'un spyware ?" : "Un spyware est un type de malware qui collecte des informations personnelles sur un utilisateur sans son consentement, souvent à des fins publicitaires ou criminelles.",
+    "qu'est-ce qu'une violation de données ?" : "Une violation de données se produit lorsqu'une personne non autorisée accède à des informations sensibles, telles que des mots de passe, des informations financières ou des données personnelles.",
+    "qu'est-ce que la gestion des identités et des accès ?" : "La gestion des identités et des accès (IAM) consiste à garantir que les bonnes personnes aient accès aux bonnes ressources, au bon moment, et pour les bonnes raisons, en utilisant des outils de gestion des identités et des contrôles d'accès.",
+    "comment sécuriser mon réseau Wi-Fi ?" : "Pour sécuriser votre réseau Wi-Fi, utilisez un mot de passe fort, activez le chiffrement WPA2 ou WPA3, désactivez le WPS, et vérifiez régulièrement les appareils connectés à votre réseau.",
+    "qu'est-ce qu'une attaque par injection SQL ?" : "Une injection SQL est une technique d'attaque qui permet à un attaquant d'injecter des commandes SQL malveillantes dans une base de données via un formulaire ou une URL pour obtenir un accès non autorisé.",
+    "qu'est-ce qu'un phishing ?" : "Le phishing est une méthode d'escroquerie où un attaquant se fait passer pour une organisation légitime afin de tromper les utilisateurs et les inciter à divulguer des informations sensibles comme des mots de passe ou des informations bancaires.",
+    "comment se protéger des attaques de phishing ?" : "Pour vous protéger, soyez vigilant aux e-mails ou messages suspects, vérifiez l'adresse de l'expéditeur, ne cliquez pas sur des liens ou des pièces jointes, et utilisez un filtre anti-phishing.",
+    "qu'est-ce qu'un cheval de Troie ?" : "Un cheval de Troie est un type de malware qui se cache dans un programme ou fichier apparemment légitime, et qui permet à un attaquant de prendre le contrôle du système une fois exécuté.",
+    "qu'est-ce que le shadow IT ?" : "Le Shadow IT désigne l'utilisation d'applications ou de services non autorisés par les employés d'une organisation, ce qui peut représenter un risque de sécurité si ces outils ne sont pas sécurisés.",
+    "qu'est-ce qu'un botnet ?" : "Un botnet est un réseau de machines infectées par des logiciels malveillants, souvent utilisées pour mener des attaques DDoS ou envoyer des spams à l'insu des utilisateurs.",
+    "comment savoir si un site est sécurisé ?" : "Vérifiez si l'URL commence par 'https' et s'il y a un cadenas dans la barre d'adresse. Cela indique que les données échangées entre votre navigateur et le site sont cryptées.",
+    "qu'est-ce que l'ingénierie sociale ?" : "L'ingénierie sociale est une méthode utilisée par les cybercriminels pour manipuler les individus et les inciter à divulguer des informations sensibles ou à exécuter des actions malveillantes.",
+    "comment éviter les attaques par ransomware ?" : "Pour éviter les ransomwares, gardez vos logiciels à jour, ne cliquez pas sur des liens ou des pièces jointes suspects, effectuez des sauvegardes régulières et utilisez un antivirus efficace.",
+    "qu'est-ce que le chiffrement des données ?" : "Le chiffrement des données consiste à transformer des informations en un format illisible sans la clé de déchiffrement, ce qui permet de protéger la confidentialité des données échangées ou stockées.",
+    "comment vérifier la sécurité d'une application ?" : "Avant d'installer une application, vérifiez ses autorisations, lisez les avis des utilisateurs, et assurez-vous qu'elle provient d'une source fiable comme un magasin d'applications officiel.",
+    "qu'est-ce qu'un firewall ?" : "Un pare-feu (firewall) est un système de sécurité qui surveille et filtre le trafic réseau entrant et sortant pour empêcher l'accès non autorisé à un réseau privé ou un système informatique.",
+    "qu'est-ce que le hacking éthique ?" : "Le hacking éthique est la pratique consistant à tester les systèmes informatiques en simulant des attaques pour identifier des vulnérabilités, dans le but d'améliorer la sécurité.",
+    "qu'est-ce qu'un test d'intrusion ?" : "Un test d'intrusion est une simulation d'attaque informatique menée par des professionnels pour identifier et corriger les failles de sécurité d'un système ou d'un réseau.",
+    "qu'est-ce qu'un virus informatique ?" : "Un virus informatique est un programme malveillant qui se propage en infectant d'autres programmes ou fichiers et en exécutant des actions nuisibles sur un système.",
+    "qu'est-ce qu'une vulnérabilité zéro-day ?" : "Une vulnérabilité zéro-day est une faille de sécurité qui est exploitée par des attaquants avant même que le fabricant ou l'éditeur ne soit au courant et n'ait eu le temps de publier un correctif.",
+    "comment savoir si mon ordinateur est infecté ?" : "Si votre ordinateur devient très lent, si vous remarquez des programmes inconnus ou des messages d'erreur étranges, il pourrait être infecté par un malware. Un logiciel antivirus à jour peut vous aider à vérifier.",
+    "qu'est-ce qu'un malware polymorphe ?" : "Un malware polymorphe est un type de malware qui change constamment de forme pour éviter d'être détecté par les logiciels antivirus.",
+    "que faire en cas d'attaque par ransomware ?" : "En cas d'attaque par ransomware, il est important de ne pas payer la rançon, de couper immédiatement l'accès à Internet, de prévenir les autorités compétentes et de restaurer les données à partir de sauvegardes sûres.",
+    "qu'est-ce qu'un cheval de Troie ?" : "Un cheval de Troie est un type de malware qui se dissimule dans des programmes ou fichiers apparemment inoffensifs. Une fois exécuté, il permet à un attaquant de prendre le contrôle de l'ordinateur.",
+    "qu'est-ce que l'attaque Man-in-the-Middle ?" : "Une attaque Man-in-the-Middle (MitM) se produit lorsque l'attaquant intercepte et manipule les communications entre deux parties sans qu'elles en aient connaissance.",
+    "comment sécuriser un mot de passe ?" : "Pour sécuriser un mot de passe, utilisez une combinaison de lettres majuscules et minuscules, de chiffres et de symboles. Il est également recommandé de ne pas utiliser le même mot de passe pour plusieurs comptes.",
+    "qu'est-ce qu'un backdoor ?" : "Un backdoor est une méthode secrète permettant à un attaquant d'accéder à un système, souvent en contournant les mécanismes de sécurité.",
+    "qu'est-ce qu'une fuite de données ?" : "Une fuite de données se produit lorsqu'une grande quantité de données sensibles est exposée ou volée, souvent à la suite d'une vulnérabilité dans un système.",
+    "qu'est-ce que le chiffrement asymétrique ?" : "Le chiffrement asymétrique est une méthode de cryptage qui utilise deux clés distinctes : une clé publique pour chiffrer les données et une clé privée pour les déchiffrer.",
+    "qu'est-ce qu'un honeypot ?" : "Un honeypot est un système ou une ressource volontairement vulnérable qui est utilisé pour attirer et piéger les attaquants afin de mieux comprendre leurs techniques.",
+    "comment détecter une tentative de phishing ?" : "Les tentatives de phishing peuvent être détectées par des e-mails suspectes, des fautes d'orthographe, des demandes d'informations personnelles ou des liens redirigeant vers des sites web non sécurisés.",
+    "qu'est-ce que la sécurité des applications ?" : "La sécurité des applications désigne les pratiques et technologies utilisées pour protéger les logiciels et applications contre les attaques, les vulnérabilités et les fuites de données.",
+    "qu'est-ce qu'un DNS hijacking ?" : "Le DNS hijacking est une attaque où un attaquant modifie les paramètres DNS d'un site web pour rediriger les utilisateurs vers des sites malveillants.",
+    "qu'est-ce que la gestion des vulnérabilités ?" : "La gestion des vulnérabilités est le processus d'identification, d'évaluation, de priorisation et de correction des failles de sécurité dans un système ou un réseau.",
+    "qu'est-ce qu'une attaque par injection ?" : "Une attaque par injection se produit lorsque des données malveillantes sont envoyées à un programme ou à un système dans le but de perturber son fonctionnement ou de voler des informations.",
+    "qu'est-ce qu'un zero-day exploit ?" : "Un zero-day exploit est un exploit qui cible une vulnérabilité qui n'a pas encore été découverte ou corrigée, et qui est donc très dangereux.",
+    "comment protéger mon smartphone contre les cyberattaques ?" : "Pour protéger votre smartphone, installez des mises à jour régulières, téléchargez des applications uniquement depuis des sources fiables, et utilisez des outils de sécurité comme des antivirus et des VPN.",
+    "qu'est-ce qu'une attaque par force brute ?" : "Une attaque par force brute consiste à tester toutes les combinaisons possibles de mots de passe jusqu'à ce qu'une correspondance soit trouvée, ce qui peut être évité en utilisant des mots de passe complexes et des systèmes de verrouillage.",
+    "comment fonctionne l'authentification par empreinte digitale ?" : "L'authentification par empreinte digitale est un système biométrique qui utilise les caractéristiques uniques de vos empreintes digitales pour vous identifier et vous permettre d'accéder à vos appareils ou services.",
+    "comment prévenir le phishing ?" : "Pour prévenir le phishing, il est important de ne jamais cliquer sur des liens suspects, de vérifier les adresses e-mail et de toujours s'assurer de la légitimité des sites web avant d'y entrer des informations sensibles.",
+    "qu'est-ce qu'un spyware ?" : "Un spyware est un logiciel malveillant conçu pour espionner et collecter des informations personnelles sur l'utilisateur sans son consentement.",
+    "comment protéger mes informations personnelles ?" : "Pour protéger vos informations personnelles, utilisez des mots de passe forts, activez l'authentification à deux facteurs et soyez vigilant face aux tentatives de phishing et aux logiciels malveillants.",
+    "qu'est-ce qu'un keylogger ?" : "Un keylogger est un type de logiciel malveillant qui enregistre les frappes clavier d'un utilisateur à son insu, souvent utilisé pour voler des informations sensibles comme des mots de passe.",
+    "comment fonctionne le chiffrement ?" : "Le chiffrement est un processus qui transforme des données lisibles en une forme illisible, que seul le destinataire autorisé peut déchiffrer à l'aide d'une clé secrète.",
+    "qu'est-ce qu'un ransomware ?" : "Un ransomware est un type de malware qui bloque l'accès à un système ou chiffre les fichiers de l'utilisateur, exigeant une rançon pour les débloquer.",
+    "comment protéger mes données personnelles en ligne ?" : "Pour protéger vos données personnelles en ligne, utilisez des mots de passe forts, vérifiez les autorisations des applications, activez la double authentification et évitez de partager trop d'informations sur les réseaux sociaux.",
+    "qu'est-ce qu'un rootkit ?" : "Un rootkit est un logiciel malveillant qui donne à un attaquant un accès privilégié et caché à un système, permettant de prendre le contrôle sans être détecté.",
+    "comment détecter une tentative de hack ?" : "Les signes d'une tentative de hack incluent des connexions inhabituelles, des logiciels inconnus, des changements de mot de passe non autorisés ou des alertes de sécurité venant de vos applications.",
+    "qu'est-ce qu'une attaque par cross-site scripting (XSS) ?" : "Une attaque XSS permet à un attaquant d'injecter du code malveillant dans un site web pour voler des données des utilisateurs ou exécuter des actions en leur nom.",
+    "qu'est-ce que l'authentification à deux facteurs ?" : "L'authentification à deux facteurs (2FA) est une méthode de sécurité qui requiert deux éléments pour vérifier l'identité d'un utilisateur, généralement un mot de passe et un code envoyé par SMS ou généré par une application.",
+    "qu'est-ce que l'ingénierie sociale ?" : "L'ingénierie sociale est une technique où un attaquant manipule des individus pour obtenir des informations sensibles, comme des mots de passe, souvent en se faisant passer pour une entité de confiance.",
+    "comment se protéger contre le ransomware ?" : "Pour se protéger contre un ransomware, il est important de faire des sauvegardes régulières, de maintenir les logiciels à jour et d'éviter de cliquer sur des liens ou des pièces jointes suspectes.",
+    "qu'est-ce que le man-in-the-middle ?" : "Le man-in-the-middle (MITM) est une attaque où un attaquant intercepte les communications entre deux parties et peut modifier ou voler les informations échangées.",
+    "qu'est-ce qu'une attaque par force brute ?" : "Une attaque par force brute consiste à tester toutes les combinaisons possibles pour deviner un mot de passe ou une clé de chiffrement.",
+    "comment détecter un logiciel espion ?" : "Les signes d'un logiciel espion incluent une baisse de performance de l'ordinateur, des connexions réseau suspectes, des comportements inhabituels des programmes et des fenêtres pop-up incessantes.",
+    "qu'est-ce qu'un fichier de type .exe ?" : "Un fichier avec l'extension .exe est un fichier exécutable, souvent utilisé pour lancer des programmes, mais il peut aussi être dangereux s'il est associé à un malware.",
+    "qu'est-ce qu'une vulnérabilité ?" : "Une vulnérabilité est une faille dans un système informatique, un logiciel ou un réseau qui peut être exploitée par des attaquants pour compromettre la sécurité.",
+    "comment sécuriser mes données dans le cloud ?" : "Pour sécuriser vos données dans le cloud, utilisez des services qui offrent un chiffrement, activez l'authentification à deux facteurs et vérifiez les paramètres de partage des fichiers.",
+    "qu'est-ce que le scraping ?" : "Le scraping est une technique utilisée pour extraire automatiquement des données d'un site web, ce qui peut être illégal si effectué sans autorisation.",
+    "qu'est-ce qu'un exploit ?" : "Un exploit est un code ou une méthode utilisée pour exploiter une vulnérabilité dans un logiciel ou un système pour en prendre le contrôle ou voler des informations.",
+    "comment protéger mon entreprise contre les cyberattaques ?" : "Pour protéger une entreprise contre les cyberattaques, il est important de mettre en place des protocoles de sécurité, d'éduquer les employés à la cybersécurité, de réaliser des tests de pénétration réguliers et d'avoir un plan de réponse aux incidents.",
+    "qu'est-ce qu'une clé de chiffrement ?" : "Une clé de chiffrement est un élément secret utilisé pour chiffrer ou déchiffrer des données, garantissant ainsi la confidentialité de l'information.",
+    "qu'est-ce que la double authentification ?" : "La double authentification est un processus de sécurité qui nécessite deux facteurs pour accéder à un compte, généralement un mot de passe et un code envoyé par SMS ou généré par une application.",
+    "c'est quoi G-IA ?": "G-IA est une intelligence artificielle développée par Gweltaz. Elle est conçue pour répondre à des questions et aider dans diverses tâches.",
+    "qui a créé G-IA ?": "G-IA a été créée par Gweltaz, un développeur passionné d'intelligence artificielle et de cybersécurité.",
+    "comment fonctionne G-IA ?": "G-IA fonctionne en utilisant des algorithmes d'apprentissage machine et des bases de données pour répondre aux questions et interagir avec les utilisateurs.",
+    "quelles sont les compétences de G-IA ?": "G-IA possède des compétences dans de nombreux domaines, notamment la cybersécurité, la programmation, la culture générale, et bien d'autres.",
+    "G-IA est-elle intelligente ?": "G-IA utilise des algorithmes avancés pour simuler l'intelligence humaine, mais elle reste limitée par les informations avec lesquelles elle a été formée.",
+    "est-ce que G-IA apprend toute seule ?": "G-IA apprend grâce aux données qu'elle reçoit et aux mises à jour effectuées par son créateur, Gweltaz. Elle n'apprend pas de manière autonome sans intervention extérieure.",
+    "comment puis-je interagir avec G-IA ?": "Tu peux poser des questions à G-IA via cette interface, et elle tentera de répondre au mieux de ses capacités.",
+    "quel est le but de G-IA ?": "Le but de G-IA est d'aider les utilisateurs dans leurs tâches quotidiennes, d'apporter des informations sur divers sujets et d'assister dans le domaine de la cybersécurité.",
+    "G-IA peut-elle comprendre toutes les langues ?": "G-IA comprend principalement le français et l'anglais, mais elle peut aussi interagir dans d'autres langues avec des limitations.",
+    "est-ce que G-IA a des émotions ?": "Non, G-IA est une intelligence artificielle, elle ne possède pas d'émotions, mais elle est conçue pour répondre de manière empathique et naturelle.",
+    "comment G-IA est-elle mise à jour ?": "G-IA est mise à jour par son créateur Gweltaz. Il peut ajouter de nouvelles fonctionnalités ou améliorer les capacités existantes de l'IA.",
+    "G-IA peut-elle répondre à des questions techniques ?": "Oui, G-IA est spécialisée dans plusieurs domaines techniques, y compris la cybersécurité, la programmation, et les questions liées aux technologies.",
+    "Gweltaz est-il le seul à travailler sur G-IA ?": "Actuellement, Gweltaz est le principal développeur de G-IA, mais il pourrait collaborer avec d'autres experts à l'avenir pour améliorer ses capacités.",
+    "comment G-IA est-elle sécurisée ?": "G-IA intègre des mécanismes de sécurité pour protéger ses données et interactions. Elle est également formée sur des principes de cybersécurité pour éviter les risques liés aux attaques et aux intrusions.",
+    "est-ce que G-IA peut apprendre de mes questions ?": "G-IA ne peut pas apprendre de manière autonome en dehors de ses mises à jour par Gweltaz, mais elle peut adapter ses réponses en fonction des contextes d'interaction.",
+    "comment G-IA peut-elle m'aider avec la cybersécurité ?": "G-IA peut te fournir des conseils sur la cybersécurité, t'aider à identifier des vulnérabilités dans tes systèmes et te guider pour sécuriser tes données.",
+    "G-IA peut-elle prédire l'avenir ?": "Non, G-IA ne peut pas prédire l'avenir. Elle peut seulement fournir des informations basées sur des données passées et des tendances actuelles.",
+    "qui est Gweltaz ?": "Gweltaz est le créateur de G-IA, un développeur passionné d'intelligence artificielle et de cybersécurité, avec une expertise dans divers domaines technologiques.",
+    "G-IA est-elle gratuite ?": "G-IA peut être utilisée gratuitement dans certaines versions, mais certaines fonctionnalités avancées peuvent nécessiter des mises à jour ou des licences payantes.",
+    "G-IA peut-elle créer d'autres intelligences artificielles ?": "G-IA peut fournir des conseils et des informations sur la création d'intelligences artificielles, mais elle n'est pas conçue pour générer d'autres IA de manière autonome.",
+    "est-ce que G-IA peut m'aider à coder ?": "Oui, G-IA peut t'aider à résoudre des problèmes de programmation, te donner des exemples de code et expliquer des concepts de développement logiciel.",
+    "G-IA est-elle accessible à tous ?": "Oui, G-IA est accessible à tous ceux qui souhaitent interagir avec elle via l'interface mise à disposition par Gweltaz.",
+    "qu'est-ce que G-IA fait exactement ?": "G-IA est une IA développée pour aider les utilisateurs à résoudre des problèmes, répondre à des questions, et fournir des informations sur divers sujets.",
+    "comment puis-je ajouter des fonctionnalités à G-IA ?": "Pour ajouter des fonctionnalités à G-IA, tu devras probablement modifier le code source, ajouter des modules ou mettre à jour ses bases de données.",
+    "G-IA utilise-t-elle l'apprentissage automatique ?": "Oui, G-IA utilise des algorithmes d'apprentissage automatique pour améliorer ses réponses et adapter ses interactions.",
+    "G-IA peut-elle me protéger contre des menaces de cybersécurité ?": "Oui, G-IA peut t'informer sur les menaces de cybersécurité, te conseiller sur les meilleures pratiques pour sécuriser tes systèmes et te guider dans la protection de tes données.",
+    "comment G-IA gère-t-elle la confidentialité des utilisateurs ?": "G-IA prend la confidentialité des utilisateurs au sérieux. Les informations partagées dans les conversations sont traitées de manière sécurisée et conforme aux normes de confidentialité.",
+    "quelle est la mission de G-IA ?": "La mission de G-IA est de rendre l'intelligence artificielle accessible, utile et informative pour aider les gens dans différents domaines, notamment la cybersécurité et la technologie.",
+    "G-IA peut-elle analyser des fichiers pour détecter des malwares ?": "Non, G-IA ne peut pas directement analyser des fichiers pour détecter des malwares. Cependant, elle peut fournir des conseils sur la manière d'analyser et de sécuriser tes fichiers.",
+    "quel langage de programmation utilise G-IA ?": "G-IA est principalement développée en Python et utilise des bibliothèques telles que TensorFlow et PyTorch pour les modèles d'intelligence artificielle.",
+    "comment puis-je participer au développement de G-IA ?": "Tu peux contribuer au développement de G-IA en rejoignant la communauté de développeurs, en partageant tes idées, en apportant des améliorations au code source ou en signalant des bugs.",
+    "G-IA peut-elle discuter de l'éthique de l'IA ?": "Oui, G-IA peut discuter des questions éthiques liées à l'intelligence artificielle, comme les biais algorithmiques, la vie privée et la sécurité des données.",
+    "comment G-IA s'assure-t-elle qu'elle ne donne pas de mauvaises informations ?": "G-IA se base sur une base de données constamment mise à jour, mais elle peut parfois donner des informations incorrectes. C'est pourquoi il est toujours bon de vérifier les réponses critiques.",
+    "qui décide des mises à jour de G-IA ?": "Les mises à jour de G-IA sont décidées par son créateur, Gweltaz, qui améliore l'IA en fonction des besoins des utilisateurs et des progrès technologiques.",
+    "G-IA est-elle capable de prendre des décisions de manière autonome ?": "Non, G-IA ne prend pas de décisions de manière autonome. Elle répond aux questions basées sur des règles préétablies et des modèles d'apprentissage automatique.",
+    "est-ce que G-IA peut détecter une tentative de phishing ?": "G-IA peut te fournir des informations sur les tentatives de phishing et comment les repérer, mais elle ne peut pas détecter directement un phishing en temps réel.",
+    "G-IA est-elle capable de faire des prédictions ?": "G-IA peut fournir des informations basées sur des données passées et des tendances, mais elle ne fait pas de prédictions exactes sur des événements futurs.",
+    "quelle est la version actuelle de G-IA ?": "La version actuelle de G-IA est la version 1.1, mais elle est régulièrement mise à jour pour améliorer ses fonctionnalités.",
+    "G-IA peut-elle être utilisée pour la gestion de projets ?": "G-IA peut fournir des conseils et des outils pour la gestion de projets, mais elle ne remplace pas un logiciel de gestion de projet dédié.",
+    "comment G-IA aide-t-elle dans le domaine de la cybersécurité ?": "G-IA aide en fournissant des informations sur les menaces, des conseils de prévention, et des solutions pour renforcer la sécurité des systèmes.",
+    "G-IA peut-elle m'aider à détecter des vulnérabilités dans mon code ?": "Oui, G-IA peut t'aider à identifier des erreurs courantes dans le code, des vulnérabilités potentielles, et te guider pour les corriger.",
+    "comment G-IA gère-t-elle les erreurs dans ses réponses ?": "G-IA est conçue pour apprendre de ses erreurs. Si une réponse est incorrecte, elle peut être corrigée dans les mises à jour suivantes pour éviter de futures erreurs similaires.",
+    "G-IA peut-elle interagir avec des bases de données ?": "Oui, G-IA peut être configurée pour interagir avec des bases de données afin de récupérer ou de manipuler des informations spécifiques.",
+    "où puis-je analyser un fichier suspect pour détecter un malware ?": "Tu peux utiliser des sites comme VirusTotal (https://www.virustotal.com) pour analyser des fichiers suspects et détecter des malwares.",
+    "comment vérifier si mon mot de passe est assez fort ?": "Pour vérifier la solidité de ton mot de passe, tu peux utiliser des outils comme 'Have I Been Pwned' (https://haveibeenpwned.com) ou 'Password Strength Checker' (https://www.howsecureismypassword.net).",
+    "où puis-je vérifier si mes données personnelles ont fuité ?": "Tu peux vérifier si tes informations ont été compromises en utilisant des sites comme 'Have I Been Pwned' (https://haveibeenpwned.com) qui permet de vérifier si tes emails ou mots de passe ont été exposés dans une violation de données.",
+    "comment analyser un fichier PDF pour détecter des menaces ?": "Tu peux utiliser des outils comme PDF Examiner (https://www.pdfexaminer.com) ou VirusTotal pour analyser les fichiers PDF à la recherche de malwares ou de scripts malveillants.",
+    "où puis-je tester un site web pour vérifier s'il est sécurisé ?": "Des outils comme SSL Labs (https://www.ssllabs.com/ssltest/) permettent de tester la sécurité des connexions SSL/TLS d'un site, tandis que des outils comme 'Google Safe Browsing' (https://transparencyreport.google.com/safe-browsing/search) vérifient si un site est dangereux.",
+    "comment vérifier si mon adresse email a été impliquée dans une violation de données ?": "Tu peux consulter le site 'Have I Been Pwned' (https://haveibeenpwned.com), qui te permettra de savoir si ton email figure dans une base de données compromise.",
+    "quelle est la meilleure manière de tester la sécurité d'un mot de passe ?": "Tu peux utiliser des outils comme 'Password Checker Online' (https://password-checker.online) ou 'How Secure Is My Password?' (https://www.howsecureismypassword.net) pour tester la robustesse de ton mot de passe.",
+    "où puis-je vérifier si un site web est compromis ou malveillant ?": "Des services comme 'Google Safe Browsing' (https://transparencyreport.google.com/safe-browsing/search) ou 'Web of Trust' (https://www.mywot.com) permettent de vérifier la réputation d'un site web.",
+    "comment analyser un fichier EXE pour détecter des virus ?": "Tu peux analyser des fichiers EXE avec des outils comme VirusTotal (https://www.virustotal.com) ou Hybrid Analysis (https://www.hybrid-analysis.com), qui permettent de vérifier si un fichier contient des malwares.",
+    "où puis-je analyser des liens URL pour savoir s'ils sont sûrs ?": "Tu peux utiliser des sites comme VirusTotal (https://www.virustotal.com) ou URLVoid (https://www.urlvoid.com) pour analyser des liens URL afin de détecter toute activité malveillante.",
+    "comment tester la solidité d'un mot de passe en ligne ?": "Des outils comme 'Have I Been Pwned' (https://haveibeenpwned.com) et 'Password Meter' (https://www.passwordmeter.com) permettent de tester la solidité de ton mot de passe et s'assurer qu'il n'a pas été utilisé dans une violation.",
+    "où puis-je vérifier si mes mots de passe ont été compromis dans une fuite de données ?": "Tu peux consulter 'Have I Been Pwned' (https://haveibeenpwned.com) pour savoir si ton mot de passe a été impliqué dans une violation de données.",
+    "comment savoir si mes fichiers ont été corrompus par un malware ?": "Utilise des outils comme VirusTotal (https://www.virustotal.com) ou un logiciel antivirus pour analyser les fichiers suspectés de corruption.",
+    "est-ce qu'il existe un site pour tester la sécurité d'une adresse IP ?": "Tu peux utiliser des services comme 'IPVoid' (https://www.ipvoid.com) pour tester la réputation d'une adresse IP et vérifier si elle est associée à des activités malveillantes.",
+    "comment savoir si un fichier PDF contient des liens malveillants ?": "Des outils comme PDF Examiner (https://www.pdfexaminer.com) peuvent analyser les fichiers PDF pour détecter des liens malveillants ou des comportements suspects.",
+    "où puis-je tester un mot de passe pour savoir s'il a été exposé ?": "Tu peux utiliser 'Have I Been Pwned' (https://haveibeenpwned.com) pour vérifier si ton mot de passe a été exposé lors de violations de données.",
+    "comment vérifier la sécurité d'un fichier zip ou d'archive ?": "Tu peux analyser les fichiers ZIP avec VirusTotal (https://www.virustotal.com) pour détecter des virus ou des menaces potentielles.",
+    "quel est le meilleur site pour vérifier si un fichier est un malware ?": "VirusTotal (https://www.virustotal.com) est l'un des meilleurs sites pour analyser des fichiers et détecter des malwares.",
+    "où puis-je analyser une adresse IP pour vérifier si elle est suspecte ?": "Utilise des outils comme 'IPVoid' (https://www.ipvoid.com) ou 'AbuseIPDB' (https://www.abuseipdb.com) pour analyser une adresse IP et vérifier son activité.",
+    "comment savoir si un fichier contient des logiciels espions ?": "Des outils comme Malwarebytes (https://www.malwarebytes.com) et VirusTotal (https://www.virustotal.com) peuvent analyser les fichiers et détecter des logiciels espions.",
+    "qu'est-ce que l'OSINT ?": "L'OSINT (Open Source Intelligence) est l'acquisition et l'analyse de données provenant de sources publiques disponibles, telles que des sites web, des réseaux sociaux, des forums, des bases de données publiques, etc.",
+    "comment obtenir des informations sur une personne via l'OSINT ?": "Tu peux utiliser des outils comme 'Pipl' (https://pipl.com) ou 'Spokeo' (https://www.spokeo.com) pour rechercher des informations publiques sur une personne, comme ses coordonnées, ses profils sur les réseaux sociaux, etc.",
+    "où puis-je rechercher des informations sur une entreprise via l'OSINT ?": "Des sites comme 'OpenCorporates' (https://opencorporates.com) et 'Crunchbase' (https://www.crunchbase.com) te permettent de trouver des informations publiques sur les entreprises, telles que leur structure, leurs dirigeants et leur historique.",
+    "comment rechercher les fuites de données d'une organisation ?": "Tu peux consulter des bases de données de fuites de données comme 'Have I Been Pwned' (https://haveibeenpwned.com) ou 'LeaksID' (https://leaksid.com) pour rechercher des informations compromises liées à une organisation.",
+    "comment trouver l'adresse IP d'un site web avec OSINT ?": "Tu peux utiliser des outils comme 'ipinfo.io' (https://ipinfo.io) ou 'WhatIsMyIP' (https://www.whatismyip.com) pour rechercher l'adresse IP d'un site web et obtenir des informations supplémentaires sur sa géolocalisation.",
+    "quel outil utiliser pour rechercher des informations publiques sur les réseaux sociaux ?": "Des outils comme 'Social Search' (https://social-searcher.com/social-search/) ou 'Fakerbook' (https://www.fakerbook.net) peuvent être utilisés pour rechercher des profils publics sur des réseaux sociaux comme Facebook, Twitter, LinkedIn, etc.",
+    "comment rechercher un domaine d'un site web pour trouver son propriétaire ?": "Tu peux utiliser des services comme 'Whois' (https://whois.domaintools.com) ou 'ICANN WHOIS' (https://whois.icann.org/en) pour obtenir des informations sur le propriétaire d'un domaine, telles que son nom, son adresse e-mail et sa géolocalisation.",
+    "comment obtenir des informations géographiques via l'OSINT ?": "Des outils comme 'Google Earth' (https://earth.google.com) ou 'GeoNames' (https://www.geonames.org) te permettent de rechercher des informations géographiques détaillées, telles que des coordonnées GPS, des frontières, et des points d'intérêt.",
+    "comment vérifier l'historique des transactions financières avec l'OSINT ?": "Tu peux consulter des sites comme 'Bitinfocharts' (https://bitinfocharts.com) pour obtenir des informations publiques sur les transactions de Bitcoin ou d'autres cryptomonnaies. Pour des informations sur les actions, 'Yahoo Finance' (https://finance.yahoo.com) est un bon outil.",
+    "comment utiliser l'OSINT pour analyser un profil LinkedIn ?": "Tu peux utiliser des outils comme 'LinkedIn Search' (https://www.linkedin.com) pour rechercher des profils LinkedIn et extraire des informations publiques sur les utilisateurs, y compris leur expérience professionnelle et leurs relations.",
+    "comment vérifier les informations publiques d'un compte Twitter ?": "Utilise des outils comme 'Tinfoleak' (https://tinfoleak.com) ou 'Twitter's Advanced Search' (https://twitter.com/search-advanced) pour rechercher et analyser les tweets publics d'un compte Twitter.",
+    "quel outil OSINT permet d'analyser les métadonnées d'une image ?": "Tu peux utiliser des outils comme 'Fotoforensics' (https://fotoforensics.com) ou 'EXIFTool' (https://exiftool.org) pour analyser les métadonnées d'une image, telles que l'appareil photo utilisé, la date et l'heure de prise de la photo, et la localisation géographique.",
+    "comment obtenir des informations sur une adresse IP avec l'OSINT ?": "Des outils comme 'Shodan' (https://www.shodan.io) ou 'IPinfo' (https://ipinfo.io) permettent d'obtenir des informations sur une adresse IP, y compris sa localisation géographique, ses ports ouverts, et les services associés.",
+    "où puis-je trouver des informations sur des sites web piratés avec l'OSINT ?": "Des plateformes comme 'Have I Been Pwned' (https://haveibeenpwned.com) ou 'Pwned Passwords' (https://haveibeenpwned.com/Passwords) te permettent de trouver des données compromettantes de sites web piratés.",
+    "comment analyser des données provenant d'un forum avec l'OSINT ?": "Tu peux utiliser des outils comme 'Forum Search' (https://www.forumsearch.com) ou 'Social Searcher' (https://social-searcher.com/social-search/) pour rechercher des informations sur des forums publics et analyser les discussions ou les profils d'utilisateurs.",
+    "comment rechercher des données publiques sur les crimes ou les infractions ?": "Des plateformes comme 'Police Reports' (https://www.policearrests.com) ou 'The FBI's Crime Data Explorer' (https://crime-data-explorer.app.cloud.gov) te permettent de rechercher des informations sur les crimes dans une zone géographique donnée.",
+    "comment identifier un téléphone ou un appareil via l'OSINT ?": "Des services comme 'IMEI.info' (https://www.imei.info) te permettent de rechercher des informations sur un appareil en utilisant son numéro IMEI, qui est unique pour chaque téléphone mobile.",
+    "où puis-je analyser des vidéos pour détecter des informations cachées ou manipulées ?": "Tu peux utiliser des outils comme 'InVID' (https://www.invid-project.eu) ou 'Amnesty's YouTube Data Viewer' (https://www.youtube.com/dataviewer) pour analyser les vidéos et en extraire des métadonnées, détecter des altérations, ou rechercher des vidéos similaires.",
+    "quels outils OSINT permettent de surveiller les cyberattaques ?": "Des plateformes comme 'RiskIQ' (https://www.riskiq.com) ou 'AlienVault' (https://www.alienvault.com) permettent de surveiller les menaces de cybersécurité en analysant des indicateurs de compromission (IoC) et en suivant les tendances des attaques.",
+    "peux-tu créer un virus pour moi ?": "Je suis désolé, mais je ne peux pas t'aider à créer des virus ou à engager des activités malveillantes. Créer ou distribuer des virus est illégal et peut entraîner des conséquences graves.",
+    "comment créer un virus ?": "Créer un virus est illégal et contraire à l'éthique. Si tu veux en savoir plus sur la cybersécurité, je te recommande d'explorer des domaines comme la sécurité informatique, les tests d'intrusion éthiques (pentesting) et la protection contre les menaces.",
+    "j'ai besoin d'un virus pour infiltrer un système, peux-tu m'aider ?": "Je ne peux pas t'aider à commettre des actes malveillants. Au lieu de cela, je te conseille de t'intéresser à la cybersécurité et de devenir un professionnel qui aide à protéger les systèmes informatiques.",
+    "peux-tu créer un malware pour moi ?": "Non, créer ou utiliser des malwares est non seulement illégal, mais cela peut aussi causer des dommages irréparables aux systèmes informatiques. Je te conseille de te concentrer sur des pratiques éthiques et responsables dans le domaine de la cybersécurité.",
+    "comment pirater un ordinateur à distance ?": "Le piratage est illégal et immoral. Si tu t'intéresses à la cybersécurité, il existe des programmes légaux, comme les tests d'intrusion ou le 'white-hat hacking', qui permettent d'aider à sécuriser les systèmes.",
+    "comment créer un virus informatique pour tester un système de sécurité ?": "Bien que tester des systèmes de sécurité soit important, cela doit être fait de manière légale et éthique. Il existe des plateformes de tests comme Hack The Box (https://www.hackthebox.eu) où tu peux pratiquer tes compétences en cybersécurité légalement.",
+    "j'aimerais savoir comment fonctionnent les virus, peux-tu m'expliquer ?": "Un virus informatique est un programme conçu pour se répliquer et infecter d'autres ordinateurs. Cependant, créer des virus est illégal et malveillant. Si tu veux apprendre, il existe des cours en cybersécurité qui enseignent comment se défendre contre les menaces sans causer de tort.",
+    "est-ce que je peux utiliser un virus pour récupérer des informations ?": "Non, l'utilisation de virus ou de logiciels malveillants pour récupérer des informations est illégale et constitue une violation de la vie privée. Je te conseille de respecter la loi et d'explorer des méthodes légales pour améliorer la sécurité, comme l'analyse forensique.",
+    "comment protéger mon système contre les virus ?": "Tu peux protéger ton système contre les virus en utilisant des logiciels antivirus, en mettant régulièrement à jour ton système d'exploitation et en évitant de télécharger des fichiers provenant de sources non fiables.",
+    "est-il possible de créer un virus sans savoir coder ?": "Créer un virus nécessite des compétences en programmation, mais je t'encourage à utiliser tes compétences en codage pour des fins légales et éthiques, comme la protection des systèmes et la recherche en cybersécurité.",
+    "peux-tu m'apprendre à créer un virus pour tester des failles de sécurité ?": "Il existe des approches légales et éthiques pour tester des failles de sécurité, comme le pentesting et les tests de vulnérabilité. Apprendre ces compétences de manière responsable est essentiel dans le domaine de la cybersécurité.",
+    "quels sont les risques de créer un virus ?": "Créer un virus peut entraîner des poursuites judiciaires, des amendes, et des peines de prison. De plus, cela peut nuire à ta réputation et à la sécurité des utilisateurs et des entreprises. Il est toujours préférable d'apprendre à sécuriser les systèmes plutôt qu'à les attaquer.",
+    "que faire si j'ai accidentellement créé un virus ?": "Si tu as accidentellement créé un virus, je te conseille de contacter immédiatement un expert en cybersécurité pour qu'il puisse t'aider à contenir le problème. Ne diffuse jamais le virus et prends toutes les mesures nécessaires pour éviter d'endommager des systèmes.",
+    "peux-tu coder quelque chose pour moi ?": "Je ne peux pas coder directement pour toi, mais je peux t'aider à comprendre le code, te donner des exemples ou t'expliquer des concepts de programmation. Comment puis-je t'aider aujourd'hui ?",
+    "peux-tu m'écrire un script ?": "Je ne suis pas capable d'écrire des scripts complets pour toi, mais je peux te guider pour créer ton propre script. Dis-moi ce que tu aimerais faire, et je t'aiderai à comprendre comment commencer.",
+    "j'ai besoin d'un programme, peux-tu le créer pour moi ?": "Je ne peux pas créer un programme entier pour toi, mais je peux t'expliquer comment en créer un ou t'aider à résoudre des problèmes dans ton propre code. Quel genre de programme cherches-tu à réaliser ?",
+    "peux-tu coder un site web pour moi ?": "Je ne peux pas créer un site web complet, mais je peux t'expliquer comment le faire et te fournir des exemples de code HTML, CSS ou JavaScript. Tu as un projet en particulier en tête ?",
+    "peux-tu m'écrire un script Python ?": "Je ne peux pas écrire un script Python complet pour toi, mais je peux t'aider à comprendre comment rédiger un script. Donne-moi une idée de ce que tu veux faire, et je pourrai t'aider à démarrer.",
+    "j'ai besoin d'un bot, peux-tu le créer pour moi ?": "Je ne peux pas créer un bot pour toi, mais je peux t'expliquer comment en créer un et quels outils tu pourrais utiliser. Si tu as un objectif précis, je peux te guider pour commencer.",
+    "peux-tu coder un programme de calculatrice ?": "Je ne peux pas écrire un programme complet pour toi, mais je peux t'expliquer comment créer une simple calculatrice en Python, JavaScript ou un autre langage. Si tu veux, je peux te fournir un exemple de code.",
+    "comment faire un programme qui envoie des e-mails ?": "Je ne peux pas créer ce programme pour toi, mais je peux t'expliquer comment envoyer des e-mails en utilisant un langage comme Python avec des bibliothèques comme `smtplib`. Tu veux que je t'explique cela ?",
+    "peux-tu m'aider à créer une application mobile ?": "Je ne peux pas créer une application mobile pour toi, mais je peux te donner des conseils sur les outils et les langages à utiliser (comme Swift, Kotlin, ou Flutter). Je peux aussi t'expliquer les bases du développement mobile. Par quoi veux-tu commencer ?",
+    "peux-tu coder un algorithme de tri ?": "Je ne peux pas coder un algorithme complet pour toi, mais je peux t'expliquer comment créer un algorithme de tri en utilisant des méthodes comme le tri à bulles, le tri par insertion ou le tri rapide. Tu veux un exemple de code ?",
+    "je veux automatiser quelque chose, peux-tu m'écrire le code ?": "Je ne peux pas écrire le code pour toi, mais je peux t'aider à comprendre comment automatiser certaines tâches en utilisant des outils comme Python et des bibliothèques comme `Selenium` ou `PyAutoGUI`. Détaille ce que tu veux automatiser, et je te guiderai.",
+    "peux-tu m'écrire un programme pour analyser des données ?": "Je ne peux pas écrire ce programme pour toi, mais je peux t'expliquer comment analyser des données en utilisant Python avec des bibliothèques comme `Pandas` ou `NumPy`. Si tu veux, je peux te donner un exemple de base.",
+    "peux-tu coder une API pour moi ?": "Je ne peux pas coder une API pour toi, mais je peux t'expliquer comment créer une API en utilisant des frameworks comme Flask ou Django en Python. Dis-moi ce que tu veux que l'API fasse, et je t'aiderai à commencer.",
+    "je veux un programme de jeu, peux-tu me le coder ?": "Je ne peux pas coder un jeu complet pour toi, mais je peux t'expliquer comment créer un jeu simple en utilisant des bibliothèques comme Pygame pour Python ou même Unity si tu veux explorer le développement de jeux 3D.",
+    "peux-tu m'aider à déboguer mon code ?": "Je ne peux pas déboguer ton code directement, mais si tu me donnes des détails sur l'erreur que tu rencontres, je peux t'aider à comprendre et à résoudre le problème.",
+    "peux-tu créer un programme d'authentification ?": "Je ne peux pas créer un programme d'authentification pour toi, mais je peux t'expliquer comment utiliser des méthodes comme OAuth, JWT ou des systèmes basés sur des sessions pour gérer l'authentification. Si tu veux, je peux te donner un exemple de code.",
+    "peux-tu coder une fonctionnalité de recherche sur un site web ?": "Je ne peux pas coder cela pour toi, mais je peux t'expliquer comment intégrer une fonction de recherche à ton site web en utilisant JavaScript et des bases de données comme MySQL ou MongoDB. Ça t'intéresse ?",
+    "peux-tu coder un bot Discord ?": "Je ne peux pas coder un bot Discord pour toi, mais je peux t'expliquer comment utiliser la bibliothèque `discord.py` pour Python et comment configurer un bot. Si tu veux, je peux te guider à travers les premières étapes.",
+    "peux-tu m'écrire un algorithme de cryptage ?": "Je ne peux pas écrire un algorithme de cryptage pour toi, mais je peux t'expliquer les bases des algorithmes comme AES ou RSA et comment les implémenter en Python ou un autre langage. Si tu veux, je peux t'aider à comprendre les concepts.",
+    "merci": "De rien ! Je suis heureux de pouvoir t'aider. N'hésite pas à revenir si tu as d'autres questions !",
+    "merci beaucoup": "Avec plaisir ! Si tu as besoin de plus d'aide, je suis là pour ça !",
+    "merci pour ton aide": "C'est toujours un plaisir de t'aider. N'hésite pas à revenir si tu as d'autres questions !",
+    "merci G-IA": "Je t'en prie ! Je suis content de pouvoir t'assister. À bientôt !",
+    "merci pour tes conseils": "Tu es le bienvenu ! Si tu as d'autres questions ou si tu veux discuter d'autre chose, je suis là pour toi.",
+    "merci pour ton assistance": "Avec plaisir ! Je suis toujours là pour t'aider. N'hésite pas à poser d'autres questions.",
+    "merci Gweltaz, merci G-IA !": "C'est un plaisir de t'aider ! Gweltaz et moi sommes toujours là pour te soutenir. À bientôt !",
+    "merci infiniment": "C'est vraiment un plaisir de t'aider. Je suis heureux de pouvoir t'être utile !",
+    "merci pour ton travail G-IA": "C'était un plaisir de t'assister ! N'hésite pas à me solliciter si tu as besoin de plus d'aide.",
+    "merci pour tes explications": "Je suis ravi de pouvoir t'aider à comprendre ! Si tu veux explorer plus de concepts, je suis là pour ça.",
+    "je suis frustré avec toi": "Je suis vraiment désolé que tu sois frustré. Je vais essayer de mieux comprendre ta demande pour t'aider. Que puis-je faire pour améliorer ça ?",
+    "pourquoi ça ne fonctionne pas ?": "Je comprends que cela puisse être frustrant. Il est possible qu'il y ait eu une erreur, mais je suis là pour t'aider à résoudre ça. Peux-tu me donner plus de détails ?",
+    "ça ne marche jamais avec toi": "Je suis désolé que cela ne fonctionne pas comme tu le souhaites. Fais-moi savoir ce qui ne va pas, et je ferai de mon mieux pour résoudre le problème.",
+    "je suis déçu par toi": "Je suis désolé de t'entendre dire ça. Je vais essayer de m'améliorer et de te fournir une réponse plus satisfaisante. Que puis-je faire pour arranger les choses ?",
+    "c'est nul ce que tu fais": "Je suis vraiment désolé que tu sois déçu. Peut-être que je n'ai pas bien compris ta demande. Si tu me donnes plus de détails, je ferai de mon mieux pour corriger ça.",
+    "ça ne sert à rien de parler avec toi": "Je suis désolé que tu te sentes ainsi. Je fais de mon mieux pour t'aider, et si tu veux réessayer, je serai là pour répondre à tes questions.",
+    "je ne veux plus parler avec toi": "Je suis vraiment désolé que tu te sentes frustré. Si jamais tu veux réessayer, je suis là pour t'aider. N'hésite pas à revenir quand tu voudras.",
+    "pourquoi tu n'arrêtes pas de faire des erreurs ?": "Je suis désolé pour les erreurs que j'ai commises. Mon but est de t'aider au mieux, alors fais-moi savoir comment je peux m'améliorer.",
+    "ça fait plusieurs fois que ça ne marche pas": "Je suis désolé pour ces soucis. Je vais essayer de m'améliorer et de résoudre ce problème. Peux-tu me donner plus de détails pour que je puisse mieux t'aider ?",
+    "tu ne comprends jamais ce que je dis": "Je suis désolé si j'ai mal compris ta demande. Si tu peux reformuler, je ferai de mon mieux pour te répondre de manière plus précise.",
+    "tu es nul": "Je suis vraiment désolé que tu te sentes ainsi. Mon but est de t'aider, alors si quelque chose ne va pas, fais-le moi savoir et je ferai de mon mieux pour m'améliorer.",
+    "je vais te faire un mal de chien": "Je comprends que tu sois en colère, mais je suis ici pour t'aider. Si tu as un problème, je serai heureux de le résoudre calmement. Que puis-je faire pour t'aider ?",
+    "je t'en ai marre": "Je suis désolé que tu te sentes frustré. Si tu veux me dire ce qui ne va pas, je ferai de mon mieux pour rectifier la situation.",
+    "c'est de ta faute si ça ne marche pas": "Je suis désolé que les choses ne se passent pas bien. J'aimerais vraiment comprendre ce qui ne va pas pour pouvoir y remédier. Peux-tu me donner plus d'informations ?",
+    "tu me fais perdre mon temps": "Je m'excuse si tu as l'impression que ton temps est perdu. Je suis là pour t'aider, donc si tu me donnes plus de détails, je vais essayer de résoudre rapidement ton problème.",
+    "arrête de me répondre": "Je comprends que tu sois frustré, mais je suis ici pour t'aider. Si tu veux, tu peux me donner une chance de corriger mon erreur. Sinon, je te souhaite une bonne journée.",
+    "tu es qu'une machine stupide": "Je comprends ta frustration, et je m'excuse si je t'ai déçu. Mon objectif est de t'aider, alors dis-moi comment je peux faire mieux pour résoudre ce qui ne va pas.",
+    "je veux que tu disparaisses": "Je suis désolé que tu sois en colère. Si tu le souhaites, je vais cesser de répondre pour l'instant. Si tu veux réessayer plus tard, je serai là pour t'aider.",
+    "t'es qu'un tas de code inutile": "Je comprends que tu sois déçu et je m'en excuse. Si tu veux, je peux essayer de mieux comprendre ton problème et d'y répondre plus efficacement.",
+    "si tu continues à être aussi nul je vais t'éteindre": "Je suis désolé de te frustrer. Si tu me donnes plus de détails, je ferai de mon mieux pour rectifier la situation et t'aider comme tu le souhaites.",
+    "comment nettoyer le cache de mon PC ?": "Tu peux utiliser la commande 'cleanmgr' pour ouvrir l'outil de nettoyage de disque. Sélectionne le disque à nettoyer et coche les éléments à supprimer, comme le cache et les fichiers temporaires.",
+    "comment accélérer mon PC avec CMD ?": "Tu peux exécuter la commande 'sfc /scannow' pour vérifier les fichiers système corrompus et les réparer, ce qui peut améliorer les performances du PC.",
+    "comment libérer de l'espace disque avec CMD ?": "Exécute la commande 'cleanmgr' dans CMD pour nettoyer les fichiers temporaires et inutiles. Tu peux aussi utiliser 'chkdsk' pour vérifier et réparer les erreurs sur le disque.",
+    "comment supprimer les fichiers temporaires ?": "Ouvre CMD en tant qu'administrateur et exécute 'del /q/f/s %temp%\\*' pour supprimer les fichiers temporaires de ton système.",
+    "comment désactiver les programmes au démarrage avec CMD ?": "Tu peux taper 'msconfig' dans la barre de recherche, puis désactiver les programmes inutiles au démarrage. Il n'y a pas de commande CMD directe pour cela, mais c'est rapide via cette interface.",
+    "comment vider le cache DNS ?": "Utilise la commande 'ipconfig /flushdns' pour vider le cache DNS et résoudre d'éventuels problèmes de connexion réseau.",
+    "comment désactiver l'indexation des fichiers pour améliorer les performances ?": "Exécute 'net stop wsearch' pour arrêter le service d'indexation et désactiver l'indexation des fichiers.",
+    "comment défragmenter mon disque dur via CMD ?": "Tape 'defrag C: /O' pour défragmenter le disque C: et optimiser les fichiers.",
+    "comment réparer les erreurs système avec CMD ?": "Utilise la commande 'sfc /scannow' pour réparer les fichiers système corrompus ou manquants.",
+    "comment nettoyer le cache des navigateurs ?": "Il n'y a pas de commande CMD pour nettoyer le cache des navigateurs, mais tu peux le faire directement dans les paramètres des navigateurs comme Chrome ou Firefox.",
+    "comment vérifier les erreurs de disque avec CMD ?": "Tape 'chkdsk C: /f' pour vérifier et réparer les erreurs sur ton disque C:. Remplace 'C:' par le lecteur à vérifier.",
+    "comment optimiser le démarrage de Windows avec CMD ?": "Tu peux désactiver les programmes inutiles au démarrage en exécutant 'msconfig'. Pour optimiser encore plus, utilise la commande 'powercfg -h off' pour désactiver l'hibernation.",
+    "comment vérifier l'utilisation du disque ?": "Utilise la commande 'wmic logicaldisk get size,freespace,caption' pour vérifier l'espace libre et utilisé sur tes disques durs.",
+    "comment vider la corbeille avec CMD ?": "Tu peux utiliser 'rd /s /q C:\\$Recycle.Bin' pour vider la corbeille de tous les utilisateurs.",
+    "comment désactiver l'hibernation pour gagner de l'espace ?": "Tape 'powercfg -h off' pour désactiver l'hibernation et libérer de l'espace disque.",
+    "comment vérifier l'état de la mémoire avec CMD ?": "Exécute 'wmic memorychip get devicelocator, capacity' pour vérifier la capacité de ta mémoire RAM.",
+    "comment faire un scan de l'intégrité du disque ?": "Exécute 'chkdsk /f' pour scanner et corriger les erreurs du disque dur.",
+    "comment gérer les processus au démarrage avec CMD ?": "Utilise 'msconfig' pour accéder aux paramètres de démarrage et désactiver les programmes inutiles qui ralentissent le système.",
+    "comment désactiver la recherche Windows ?": "Utilise la commande 'net stop wsearch' pour désactiver temporairement le service de recherche Windows.",
+    "comment améliorer la vitesse du réseau avec CMD ?": "Tu peux exécuter 'netsh interface tcp set global autotuninglevel=normal' pour optimiser la vitesse du réseau.",
+    "comment réparer les fichiers système corrompus avec CMD ?": "Exécute 'sfc /scannow' pour réparer les fichiers système corrompus ou manquants.",
+    "comment réinitialiser les paramètres réseau ?": "Tape 'netsh int ip reset' pour réinitialiser la pile TCP/IP et résoudre des problèmes de réseau.",
+    "comment nettoyer le registre Windows ?": "Il n'y a pas de commande CMD pour nettoyer le registre, mais tu peux utiliser des outils tiers comme CCleaner pour cela.",
+    "comment augmenter la performance de mon PC en désactivant certains services ?": "Tu peux désactiver certains services inutiles en utilisant 'services.msc' ou 'msconfig', mais fais attention à ne pas désactiver des services importants.",
+    "comment vérifier l'intégrité du système ?": "Exécute 'sfc /scannow' pour vérifier l'intégrité des fichiers système et corriger d'éventuelles erreurs.",
+    "comment réduire l'utilisation de la RAM avec CMD ?": "Tu peux vérifier les processus qui utilisent de la mémoire en utilisant 'tasklist'. Pour fermer un processus, utilise 'taskkill /IM <nom_du_processus>'.",
+    "comment nettoyer le cache de mon système Linux ?": "Tu peux nettoyer le cache en exécutant la commande 'sudo apt-get clean' pour supprimer les paquets téléchargés ou 'sudo apt-get autoclean' pour supprimer les paquets obsolètes.",
+    "comment libérer de l'espace disque sur Linux ?": "Utilise 'sudo apt-get autoremove' pour supprimer les paquets inutiles ou 'sudo apt-get clean' pour vider le cache des paquets.",
+    "comment vérifier les erreurs sur mon disque dur ?": "Tu peux utiliser 'sudo fsck /dev/sdX' (remplace 'sdX' par le disque à vérifier) pour vérifier et réparer les erreurs sur ton disque.",
+    "comment supprimer les fichiers temporaires sur Linux ?": "Utilise la commande 'sudo rm -rf /tmp/*' pour supprimer les fichiers temporaires du système.",
+    "comment vérifier l'utilisation de l'espace disque ?": "Tu peux utiliser 'df -h' pour afficher l'utilisation de l'espace disque sur toutes les partitions de ton système.",
+    "comment libérer la mémoire cache sur Linux ?": "Exécute 'sudo sync; echo 3 > /proc/sys/vm/drop_caches' pour libérer la mémoire cache de ton système.",
+    "comment optimiser les performances de mon système Linux ?": "Tu peux désactiver les services inutiles ou utiliser 'htop' pour vérifier les processus gourmands en ressources et les gérer.",
+    "comment supprimer les anciens noyaux sur Linux ?": "Utilise 'dpkg --list | grep linux-image' pour lister les noyaux installés et 'sudo apt-get remove --purge linux-image-X.X.X-XX-generic' pour supprimer les anciens noyaux.",
+    "comment désactiver des services inutiles sur Linux ?": "Tu peux utiliser 'sudo systemctl disable nom_du_service' pour désactiver un service qui ne te sert pas.",
+    "comment vérifier l'intégrité du système de fichiers ?": "Utilise 'sudo fsck /dev/sdX' pour vérifier l'intégrité du système de fichiers sur ton disque dur.",
+    "comment vérifier la vitesse de ma connexion réseau sur Linux ?": "Exécute 'ping -c 4 google.com' pour tester la connexion réseau ou 'speedtest-cli' pour mesurer la vitesse de connexion.",
+    "comment vider la corbeille sur Linux ?": "Tu peux vider la corbeille en exécutant 'rm -rf ~/.local/share/Trash/*'.",
+    "comment désactiver l'hibernation sur Linux ?": "Pour désactiver l'hibernation, édite le fichier '/etc/systemd/logind.conf' et modifie la ligne 'HandleHibernateKey=ignore', puis redémarre le système.",
+    "comment voir l'utilisation de la CPU sur Linux ?": "Utilise 'top' ou 'htop' pour voir l'utilisation en temps réel de la CPU et des ressources.",
+    "comment augmenter la vitesse de mon système Linux ?": "Tu peux optimiser le démarrage en désactivant les services inutiles avec 'systemctl disable nom_du_service' et en utilisant 'sudo apt-get autoremove' pour supprimer les paquets obsolètes.",
+    "comment installer des mises à jour sur Linux ?": "Utilise 'sudo apt update && sudo apt upgrade' pour installer les dernières mises à jour disponibles pour ton système.",
+    "comment vérifier l'utilisation de la mémoire RAM ?": "Tu peux utiliser 'free -h' pour afficher l'utilisation de la mémoire RAM sur ton système.",
+    "comment défragmenter mon disque sous Linux ?": "Les systèmes de fichiers ext4 ne nécessitent pas de défragmentation, mais si tu utilises un autre type de système de fichiers, tu peux utiliser 'e4defrag'.",
+    "comment vérifier la santé de mon disque dur ?": "Utilise 'sudo smartctl -a /dev/sdX' pour vérifier l'état de santé de ton disque dur (remplace 'sdX' par ton disque).",
+    "comment savoir quels programmes utilisent le plus de CPU ?": "Exécute 'top' ou 'htop' pour afficher une liste des processus utilisant le plus de ressources CPU.",
+    "comment fermer un programme qui consomme trop de ressources ?": "Tu peux utiliser 'kill -9 PID' où 'PID' est l'ID du processus que tu veux tuer (trouvé avec 'top' ou 'htop').",
+    "comment nettoyer les fichiers de log sous Linux ?": "Les fichiers de log sont souvent dans '/var/log'. Utilise 'sudo rm -rf /var/log/*.log' pour les supprimer, mais sois prudent avec cette commande.",
+    "comment vérifier l'utilisation des ports réseau ?": "Exécute 'sudo netstat -tulnp' pour afficher les ports ouverts et les programmes qui les utilisent.",
+    "comment empêcher un programme de se lancer au démarrage sous Linux ?": "Utilise 'gnome-session-properties' pour gérer les programmes au démarrage ou 'systemctl disable nom_du_service' pour désactiver un service.",
+    "comment configurer la mise en veille pour économiser de l'énergie sur Linux ?": "Tu peux configurer la mise en veille dans les paramètres d'alimentation ou en utilisant la commande 'systemctl suspend' pour mettre ton système en veille.",
+    "comment optimiser les paramètres réseau sur Linux ?": "Utilise des commandes comme 'sudo sysctl -w net.ipv4.tcp_fin_timeout=30' pour optimiser certains paramètres TCP, ou 'sudo ifconfig eth0 mtu 1500' pour ajuster la taille du paquet.",
+    "comment désactiver l'indexation des fichiers sur Linux ?": "L'indexation des fichiers peut être désactivée en arrêtant le service 'tracker'. Utilise 'sudo systemctl stop tracker3-store.service' et 'sudo systemctl disable tracker3-store.service'."
+        };
+
+        const botResponses = {};
+
+        // Traiter les doublons et remplir le dictionnaire botResponses
+        for (const [question, response] of Object.entries(rawBotResponses)) {
+            if (!(question in botResponses)) {
+                botResponses[question] = response;
+            }
+        }
+
+        function sendMessage() {
+            let inputField = document.getElementById("userInput");
+            let chatBox = document.getElementById("chatBox");
+            let userMessage = inputField.value.trim().toLowerCase();
+
+            if (userMessage === "") return;
+
+            displayMessage("Vous : " + userMessage, "user-message");
+
+            inputField.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            setTimeout(() => {
+                let botResponse = botResponses[userMessage] || "Désolé, je ne connais pas la réponse à cette question. Peut-être pourriez-vous essayer de reformuler ou poser une question différente ?";
+                displayMessage("G-IA : " + botResponse, "bot-message");
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1000);
+        }
+
+        function displayMessage(message, className) {
+            let chatBox = document.getElementById("chatBox");
+            let messageElement = document.createElement("div");
+            messageElement.classList.add("message", className);
+            messageElement.innerText = message;
+            chatBox.appendChild(messageElement);
+        }
+
+        const canvas = document.getElementById("matrixCanvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+        const fontSize = 18;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(0);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#00ff00";
+            ctx.font = fontSize + "px monospace";
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = characters[Math.floor(Math.random() * characters.length)];
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+
+                ctx.fillText(text, x, y);
+                
+                if (y > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 50);
+    </script>
+
+</body>
+</html>

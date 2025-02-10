@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦾 G-IA Connexion</title>
+    <style>
+        /* Styles globaux */
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: black;
+            color: #00ff00;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* Effet Matrix */
+        #matrixCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Conteneur principal */
+        .container {
+            width: 400px;
+            margin: auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00ff00;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input, button {
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            color: #00ff00;
+            background-color: #222;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+
+        input:focus, button:focus {
+            outline: none;
+            border: 2px solid #00ff00;
+            background-color: #333;
+        }
+
+        button {
+            background-color: #00ff00;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #00cc00;
+        }
+
+        .login-link a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+
+        footer {
+            margin-top: 30px;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: #ff4444;
+        }
+
+        .login-link {
+            margin-top: 20px;
+        }
+
+        /* Ajout d'un effet d'animation */
+        .fadeIn {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* Pour les titres et texte d'avertissement */
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Canvas pour l'effet Matrix -->
+    <canvas id="matrixCanvas"></canvas>
+
+    <div class="container fadeIn">
+        <h1>Se connecter</h1>
+        <form id="loginForm">
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" required>
+
+            <button type="submit">Se connecter</button>
+        </form>
+
+        <p class="login-link">Pas de compte ? <a href="register.html">S'inscrire</a></p>
+    </div>
+
+    <footer>
+        <p>Développé par Gweltaz | Support : <a href="mailto:g-ia-support@gmail.com">gweltaz.pro@gmail.com</a></p>
+    </footer>
+
+    <script>
+        // Vérification du formulaire de connexion
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            let email = document.getElementById("email").value;
+            let password = document.getElementById("password").value;
+
+            // Récupérer les données depuis le localStorage (pour les tests)
+            let storedEmail = localStorage.getItem("email");
+            let storedPassword = localStorage.getItem("password");
+
+            if (email === storedEmail && password === storedPassword) {
+                alert("✅ Connexion réussie !");
+                // Rediriger vers la page principale
+                window.location.href = "dashboard.html"; // à adapter avec ta page d'accueil
+            } else {
+                alert("⚠ Identifiants incorrects.");
+            }
+        });
+
+        // Effet Matrix pour l'arrière-plan
+        let canvas = document.getElementById("matrixCanvas");
+        let ctx = canvas.getContext("2d");
+        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth;
+
+        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#00ff00";
+            ctx.font = fontSize + "px Courier New";
+            for (let i = 0; i < drops.length; i++) {
+                let text = characters.charAt(Math.floor(Math.random() * characters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 33);
+    </script>
+
+</body>
+</html>
